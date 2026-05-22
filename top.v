@@ -1,20 +1,29 @@
+`timescale 1ns/1ps
+
 module top (
     input  wire         clk,
     input  wire         rst,
 
     input  wire         en,
 
-    input  wire [7:0]   data_in,
-    input  wire         data_in_valid,
-    output wire         data_in_ready
+    input  wire [7:0]   data_in_tdata,
+    input  wire         data_in_tvalid,
+    output wire         data_in_tready,
+
+    output wire [7:0]   data_out_tdata,
+    output wire         data_out_tvalid,
+    input  wire         data_out_tready
 );
+    assign data_out_tdata = hd_tdata;
+    assign data_out_tvalid = hd_tvalid;
+    assign hd_tready = data_out_tready;
 
     wire [8:0]  w1_addr;
     wire [471:0] w1_data;
 
-    wire [7:0]  hd_data;
-    wire        hd_valid;
-    wire        hd_ready;
+    wire [7:0]  hd_tdata;
+    wire        hd_tvalid;
+    wire        hd_tready;
 
     fc1 u_fc1 (
         .clk        (clk),
@@ -22,16 +31,16 @@ module top (
 
         .en         (en),
         
-        .data_in(data_in),
-        .data_in_valid(data_in_valid),
-        .data_in_ready(data_in_ready),
+        .data_in_tdata(data_in_tdata),
+        .data_in_tvalid(data_in_tvalid),
+        .data_in_tready(data_in_tready),
 
         .weight_addr(w1_addr),
         .weight_data_col(w1_data),
 
-        .data_out(hd_data),
-        .data_out_valid(hd_valid),
-        .data_out_ready(hd_ready)
+        .data_out_tdata(hd_tdata),
+        .data_out_tvalid(hd_tvalid),
+        .data_out_tready(hd_tready)
         
         
     );
@@ -40,7 +49,7 @@ module top (
         .DATA_WIDTH(472),
         .ADDR_WIDTH(9),
         .DEPTH(484)
-    ) w1_regfile (
+    ) regfile_w1 (
         .clk        (clk),
         .rst        (rst),
         
