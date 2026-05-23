@@ -20,7 +20,7 @@ def load_weight(dut, name):
     half_level = 7
     data_range = np.max(np.abs(weight))
     weight = np.round(weight/data_range*half_level).astype(np.int8)
-    weight = np.clip(weight, -8, 7)
+    weight = np.clip(weight, -7, 7)
 
     row, col = weight.shape[0], weight.shape[1]
 
