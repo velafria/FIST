@@ -54,7 +54,8 @@ async def test_fc1(dut):
     cocotb.start_soon(Clock(dut.clk, 1, unit="ns").start())
     await reset(dut)
 
-    weight = load_weight(dut, "fc1")
+    weight_fc1 = load_weight(dut, "fc1")
+    weight_fc2 = load_weight(dut, "fc2")
     cocotb.log.info("Load weight into regfile directly")
 
     axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "data_in"), dut.clk, dut.rst)
@@ -71,30 +72,45 @@ async def test_fc1(dut):
     await axis_source.wait()
     cocotb.log.info("Load image into top module")
 
+    '''
     all_frame = []
     for _ in range(118):
         frame = await axis_sink.recv()
         all_frame.append(np.frombuffer(frame.tdata, dtype=np.uint8))
-    
     received_data = np.concatenate(all_frame)
+    '''
 
-    expected_data = weight @ image
-    expected_data[expected_data < 0] = 0
-    expected_data[expected_data > 127] = 127
+    frame = await axis_sink.recv()
+    result = int(np.frombuffer(frame.data, dtype=np.uint8))
+    
 
-    cocotb.log.info("Receive result from fc1")
+    hidden_layer = weight_fc1 @ image
+    hidden_layer[hidden_layer < 0] = 0
+    
+    SHIFT = 16
+    FC1_MUL = 1557
+    ROUND = 1 << (SHIFT - 1)
 
-    assert np.array_equal(received_data, expected_data)
+    hidden_layer_requant = (hidden_layer * FC1_MUL + ROUND) >> SHIFT
+    hidden_layer_requant = np.clip(hidden_layer_requant, 0, 127)
 
-    cocotb.log.info("fc1 test successful")
+    #assert np.array_equal(received_data == hidden_layer_requant)
+    #cocotb.log.info("fc1 test pass")
+
+    output_data = weight_fc2 @ hidden_layer_requant
+    expected_result = int(np.argmax(output_data))
+
+    assert result == expected_result
+    cocotb.log.info("fc2 test pass")
     
 def test_runner():
     sim = os.getenv("SIM", "icarus")
 
-    proj_path = Path(__file__).resolve().parent
+    proj_path = Path(__file__).resolve().parent / "src"
 
     sources = [proj_path / "top.v",
                proj_path / "fc1.v",
+               proj_path / "fc2.v",
                proj_path / "regfile.v"]
 
     runner = get_runner(sim)
@@ -104,7 +120,10 @@ def test_runner():
         waves=True
     )
 
-    runner.test(hdl_toplevel="top", test_module="test_top")
+    runner.test(hdl_toplevel="top",
+                test_module="test_top",
+                waves=True,
+                plusargs=["+fst", "+dumpfile=sim_build/top.fst"])
 
 if __name__ == "__main__":
     test_runner()
