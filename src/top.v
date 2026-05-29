@@ -45,7 +45,7 @@ module top (
         
     );
 
-    fc1 u_fc2 (
+    fc2 u_fc2 (
         .clk        (clk),
         .rst        (rst),
 
@@ -90,8 +90,8 @@ module top (
         .rst        (rst),
         
         .we         (1'b0),
-        .wr_addr    (9'b0),
-        .wr_data    (472'b0),
+        .wr_addr    (7'b0),
+        .wr_data    (40'b0),
         
         .rd_addr    (w2_addr),
         .rd_data    (w2_data)
