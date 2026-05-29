@@ -161,18 +161,18 @@ module fc1 (
         end else if (state == RELU) begin
             for (j = 0; j < 118; j = j + 1) begin
                 // ----- ReLU: 负数归零 -----
-                if (acc[j] < 32'd0) begin
+                if (acc[j] < 32'sd0) begin
                     tmp = 8'd0;
                 end else begin
                     // ----- 定点缩放 -----
                     // 将 32-bit 无符号扩展为 64-bit 以避免乘法溢出
-                    prod = {32'd0, acc[j]} * SCALE_MUL;
+                    prod = $signed({32'd0, acc[j]}) * SCALE_MUL;
                     // 加舍入常数 (实现 round to nearest)
                     prod = prod + ROUND;
                     // 右移 SHIFT 位 (无符号右移，因为 prod 为正)
                     scaled = prod >>> SHIFT;
                     // ----- 饱和到 0~127 -----
-                    if (scaled > 32'd127)
+                    if (scaled > 32'sd127)
                         tmp = 8'd127;
                     else
                         tmp = scaled[7:0];   // 低 8 位即为结果

@@ -140,7 +140,7 @@ module fc2 (
     // 在 ARGMAX 状态的同一个周期内，使用组合逻辑找出累加值最大的神经元索引
     // 然后寄存到 result_idx 中
     reg [7:0] argmax_idx;
-    reg [31:0] max_val;
+    reg signed [31:0] max_val;
     integer k;
     always @(*) begin
         argmax_idx = 0;
