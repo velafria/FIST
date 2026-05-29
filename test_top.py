@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import torch
+from torchvision import datasets
 import numpy as np
 from PIL import Image
 
@@ -61,7 +62,7 @@ def pack_weight_bytes(weight):
 
 def load_image(path=None):
     BASE_DIR = Path(__file__).resolve().parent
-    image_path = Path(path) if path is not None else BASE_DIR / "image" / "test_0.jpg"
+    image_path = Path(path) if path is not None else BASE_DIR / "image" / "test_7.jpg"
     if not image_path.exists():
         raise FileNotFoundError(f"Input image not found: {image_path}")
 
@@ -77,6 +78,45 @@ def load_image(path=None):
     image = np.round(image / image_max * 127)
     image = np.clip(image, 0, 127).astype(np.uint8)
     return image.reshape(-1)
+
+def load_mnist_image(index=8478, is_train=False):
+    """
+    从 PyTorch 的 MNIST 数据集中读取指定索引的图片，
+    并按照与 load_image 相同的逻辑进行缩放、量化和展平。
+    
+    参数:
+    - index: 想要读取的图片索引 (0 ~ 59999)
+    - is_train: True 表示读取训练集，False 表示读取测试集
+    
+    返回:
+    - image_flat: 量化到 0~127 并且展平为 484 维的 np.uint8 数组
+    - label: 该图片的正确数字标签 (int)
+    """
+    BASE_DIR = Path(__file__).resolve().parent
+    data_dir = BASE_DIR / "data"
+    
+    mnist_dataset = datasets.MNIST(
+        root=str(data_dir), 
+        train=is_train, 
+        download=True
+    )
+    
+    pil_image, label = mnist_dataset[index]
+    
+    resampling = getattr(Image, "Resampling", Image).BILINEAR
+    image = pil_image.resize((22, 22), resampling)
+    
+    image = np.asarray(image, dtype=np.float32)
+    
+    image_max = np.max(np.abs(image))
+    if image_max == 0:
+        return np.zeros(484, dtype=np.uint8), int(label)
+
+    image = np.round(image / image_max * 127)
+    image = np.clip(image, 0, 127).astype(np.uint8)
+    
+    return image.reshape(-1), int(label)
+
 
 async def reset(dut):
     dut.rst.value = 1
@@ -106,6 +146,8 @@ async def test_top(dut):
     await RisingEdge(dut.clk)
 
     image = load_image()
+    
+    #image, label = load_mnist_image()
     load_bytes = (
         pack_weight_bytes(weight_fc1)
         + pack_weight_bytes(weight_fc2)
@@ -158,6 +200,7 @@ async def test_top(dut):
     #assert np.array_equal(hd_layer_requant, expected_hidden_layer_requant)
     #assert np.array_equal(output_data, expected_output_data)
     assert result == expected_result
+    #assert result == label
     cocotb.log.info(f"fc2 test pass, expect{expected_result}, get{result}")
     
 def test_runner():
