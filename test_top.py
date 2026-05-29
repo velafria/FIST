@@ -62,7 +62,7 @@ def pack_weight_bytes(weight):
 
 def load_image(path=None):
     BASE_DIR = Path(__file__).resolve().parent
-    image_path = Path(path) if path is not None else BASE_DIR / "image" / "test_7.jpg"
+    image_path = Path(path) if path is not None else BASE_DIR / "image" / "test_6.jpg"
     if not image_path.exists():
         raise FileNotFoundError(f"Input image not found: {image_path}")
 
