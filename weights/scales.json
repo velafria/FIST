@@ -1,0 +1,23 @@
+{
+  "input_storage_bit": 8,
+  "input_quant_max": 127,
+  "input_quant": "per_image_unsigned_0_to_127",
+  "weight_bit": 4,
+  "weight_quant_min": -7,
+  "weight_quant_max": 7,
+  "weight_quant": "per_layer_symmetric_signed_-7_to_7",
+  "fc1_output_storage_bit": 8,
+  "fc1_output_quant_max": 127,
+  "fc1_output_quant": "fixed_unsigned_0_to_127",
+  "fc1_output_scale": 0.037461547401007704,
+  "fc1_weight_scale": 0.11191517859697342,
+  "fc2_weight_scale": 0.1526113599538803,
+  "fc1_pth_shape": [
+    118,
+    484
+  ],
+  "fc2_pth_shape": [
+    10,
+    118
+  ]
+}
