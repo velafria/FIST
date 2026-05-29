@@ -19,7 +19,7 @@ module top (
     wire [471:0] w1_data;
 
     wire [6:0]  w2_addr;
-    wire [40:0] w2_data;
+    wire [39:0] w2_data;
 
     wire [7:0]  hd_tdata;
     wire        hd_tvalid;
